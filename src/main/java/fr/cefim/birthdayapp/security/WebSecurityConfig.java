@@ -15,7 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    private static final String[] PUBLIC_MATCHERS = {"/"};
+    private static final String[] PUBLIC_MATCHERS = {"/", "/login"};
 
     private final UserDetailsService mUserDetailsService;
 
@@ -34,6 +34,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .httpBasic()
                 .and()
                 .authorizeRequests()
+                .antMatchers(PUBLIC_MATCHERS).permitAll()
+                .antMatchers(HttpMethod.GET, "/users").permitAll()
                 .antMatchers(HttpMethod.POST, "/users").permitAll()
                 .antMatchers(HttpMethod.PUT, "/users").authenticated()
                 .antMatchers(HttpMethod.DELETE, "/users").authenticated()

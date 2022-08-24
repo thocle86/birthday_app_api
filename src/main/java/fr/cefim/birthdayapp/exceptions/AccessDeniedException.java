@@ -2,7 +2,7 @@ package fr.cefim.birthdayapp.exceptions;
 
 import org.springframework.http.HttpStatus;
 
-public class AccessDeniedException extends RuntimeException {
+public class AccessDeniedException extends Exception {
 
     private HttpStatus status;
 

@@ -15,6 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements UserService, UserDetailsService {
@@ -33,8 +34,14 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     @Override
     public User login(String username, String password) throws UserNotFoundException {
-        return mUserRepository.findByUsernameAndPassword(username, password)
-                .orElseThrow(() -> new UserNotFoundException(String.format("User not found with this credentials => username: %s, password: %s", username, password)));
+        Optional<User> user = mUserRepository.findByUsername(username);
+        if (user.isEmpty()) {
+            throw new UserNotFoundException(String.format("User not found with this username: %s", username));
+        }
+        if (!mPasswordEncoder.matches(password, user.get().getPassword())) {
+            throw new UserNotFoundException(String.format("User not found with this password: %s", password));
+        }
+        return user.get();
     }
 
     @Override
@@ -87,16 +94,12 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
-    public void deleteById(Long id) throws UserNotFoundException {
+    public void deleteById(Long id) throws AccessDeniedException {
         MyPrincipalUser userAuthenticated = (MyPrincipalUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!userAuthenticated.getUser().getId().equals(id)) {
             throw new AccessDeniedException(String.format("Access denied because your id(%d) is not same: %d", userAuthenticated.getUser().getId(), id));
         }
-        try {
-            mUserRepository.deleteById(id);
-        } catch (UserNotFoundException e) {
-            throw new UserNotFoundException(String.format("User not found with this id: %d", id));
-        }
+        mUserRepository.deleteById(id);
     }
 
     @Override
