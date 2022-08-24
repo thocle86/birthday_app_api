@@ -56,7 +56,7 @@ public class BirthdayServiceImpl implements BirthdayService {
             throw new AccessDeniedException(String.format("Access denied because your id(%d) is not same: %d", userAuthenticated.getUser().getId(), userId));
         }
         Birthday birthday = new Birthday();
-        birthday.setUser(mUserService.getUserById(userId));
+        birthday.setUser(mUserService.getUserById(userId).get());
         birthday.setDate(dto.getDate());
         birthday.setFirstname(dto.getFirstname());
         birthday.setLastname(dto.getLastname());
@@ -71,7 +71,7 @@ public class BirthdayServiceImpl implements BirthdayService {
             throw new AccessDeniedException(String.format("Access denied because your id(%d) is not same: %d", userAuthenticated.getUser().getId(), userId));
         }
 
-        Set<Birthday> birthdaySet = mUserService.getUserById(userId).getBirthdays();
+        Set<Birthday> birthdaySet = mUserService.getUserById(userId).get().getBirthdays();
         Birthday targetBirthday = mBirthdayRepository.findById(id)
                 .orElseThrow(() -> new BirthdayNotFoundException(String.format("Birthday not found with this id: %d", id)));
         if (!birthdaySet.contains(targetBirthday)) {

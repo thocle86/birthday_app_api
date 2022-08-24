@@ -20,4 +20,7 @@ public class Role implements Serializable {
     @Column(name = "name", columnDefinition = "VARCHAR(50)", nullable = false)
     private String name;
 
+    public Role() {
+    }
+
 }

@@ -1,14 +1,14 @@
 package fr.cefim.birthdayapp.repositories;
 
-import fr.cefim.birthdayapp.entities.User;
+import fr.cefim.birthdayapp.entities.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, Long> {
+public interface RoleRepository extends JpaRepository<Role, Long> {
 
-    Optional<User> findByUsername(String username);
+    Role findByName(String name);
 
 }

@@ -2,12 +2,13 @@ package fr.cefim.birthdayapp.controllers;
 
 import fr.cefim.birthdayapp.dtos.LoginDTO;
 import fr.cefim.birthdayapp.entities.User;
-import fr.cefim.birthdayapp.exceptions.UserNotFoundException;
 import fr.cefim.birthdayapp.services.UserServiceImpl;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Optional;
 
 @RestController
 public class LoginController {
@@ -19,9 +20,9 @@ public class LoginController {
     }
 
     @PostMapping("/login")
-    public UserDetails getLogin(@RequestBody LoginDTO loginDTO) throws UserNotFoundException {
-        User user = mUserService.login(loginDTO.getUsername(), loginDTO.getPassword());
-        return mUserService.loadUserByUsername(user.getUsername());
+    public UserDetails getLogin(@RequestBody LoginDTO loginDTO) {
+        Optional<User> user = mUserService.getUserByCredentials(loginDTO.getUsername(), loginDTO.getPassword());
+        return mUserService.loadUserByUsername(user.get().getUsername());
     }
 
 }

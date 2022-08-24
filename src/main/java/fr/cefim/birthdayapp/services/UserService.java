@@ -2,26 +2,26 @@ package fr.cefim.birthdayapp.services;
 
 import fr.cefim.birthdayapp.dtos.UserDTO;
 import fr.cefim.birthdayapp.entities.User;
-import fr.cefim.birthdayapp.exceptions.AccessDeniedException;
-import fr.cefim.birthdayapp.exceptions.UserNotFoundException;
+import fr.cefim.birthdayapp.exceptions.BusinessResourceException;
 import fr.cefim.birthdayapp.exceptions.UsernameAlreadyExistException;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface UserService {
 
-    User login(String username, String password) throws UserNotFoundException;
-
     List<User> getAllUsers();
 
-    User getUserById(Long id) throws UserNotFoundException, AccessDeniedException;
+    Optional<User> getUserById(Long id) throws BusinessResourceException;
 
-    User getUserByUsername(String username);
+    Optional<User> getUserByUsername(String username) throws BusinessResourceException;
 
-    User createByDTO(UserDTO dto) throws UsernameAlreadyExistException;
+    Optional<User> getUserByCredentials(String username, String password) throws BusinessResourceException;
 
-    User updateById(Long id, User user) throws UserNotFoundException, AccessDeniedException;
+    User saveUserByDTO(UserDTO userDTO) throws BusinessResourceException;
 
-    void deleteById(Long id) throws AccessDeniedException;
+    User updateUserByDTO(Long id, UserDTO userDTO) throws BusinessResourceException;
+
+    void deleteUserById(Long id) throws BusinessResourceException;
 
 }

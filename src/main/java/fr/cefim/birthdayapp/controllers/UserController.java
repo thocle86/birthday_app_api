@@ -2,10 +2,7 @@ package fr.cefim.birthdayapp.controllers;
 
 import fr.cefim.birthdayapp.dtos.UserDTO;
 import fr.cefim.birthdayapp.entities.User;
-import fr.cefim.birthdayapp.exceptions.AccessDeniedException;
-import fr.cefim.birthdayapp.exceptions.UserNotFoundException;
 import fr.cefim.birthdayapp.exceptions.UsernameAlreadyExistException;
-import fr.cefim.birthdayapp.services.UserService;
 import fr.cefim.birthdayapp.services.UserServiceImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,27 +22,31 @@ public class UserController {
 
     @GetMapping(value = {"", "/"})
     public ResponseEntity<List<User>> getUsers() {
-        return new ResponseEntity<>(mUserService.getAllUsers(), HttpStatus.FOUND);
+        List<User> userList = mUserService.getAllUsers();
+        return new ResponseEntity<>(userList, HttpStatus.FOUND);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUser(@PathVariable Long id) throws UserNotFoundException, AccessDeniedException {
-        return new ResponseEntity<>(mUserService.getUserById(id), HttpStatus.FOUND);
+    public ResponseEntity<User> getUser(@PathVariable Long id) {
+        User userFound = mUserService.getUserById(id).get();
+        return new ResponseEntity<>(userFound, HttpStatus.FOUND);
     }
 
     @PostMapping(value = {"", "/"})
-    public ResponseEntity<User> createByDTO(@RequestBody UserDTO dto) throws UsernameAlreadyExistException {
-        return new ResponseEntity<>(mUserService.createByDTO(dto), HttpStatus.CREATED);
+    public ResponseEntity<User> saveUser(@RequestBody UserDTO userDTO) {
+        User userSaved = mUserService.saveUserByDTO(userDTO);
+        return new ResponseEntity<>(userSaved, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateById(@PathVariable Long id, @RequestBody User user) throws UserNotFoundException, AccessDeniedException {
-        return new ResponseEntity<>(mUserService.updateById(id, user), HttpStatus.OK);
+    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody UserDTO userDTO) {
+        User userUpdated = mUserService.updateUserByDTO(id, userDTO);
+        return new ResponseEntity<>(userUpdated, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteById(@PathVariable Long id) throws AccessDeniedException {
-        mUserService.deleteById(id);
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        mUserService.deleteUserById(id);
         return new ResponseEntity<>(HttpStatus.GONE);
     }
 
