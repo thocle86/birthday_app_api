@@ -2,7 +2,6 @@ package fr.cefim.birthdayapp.controllers;
 
 import fr.cefim.birthdayapp.dtos.UserDTO;
 import fr.cefim.birthdayapp.entities.User;
-import fr.cefim.birthdayapp.exceptions.UsernameAlreadyExistException;
 import fr.cefim.birthdayapp.services.UserServiceImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

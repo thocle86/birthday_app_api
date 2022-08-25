@@ -3,7 +3,6 @@ package fr.cefim.birthdayapp.services;
 import fr.cefim.birthdayapp.dtos.UserDTO;
 import fr.cefim.birthdayapp.entities.User;
 import fr.cefim.birthdayapp.exceptions.BusinessResourceException;
-import fr.cefim.birthdayapp.exceptions.UsernameAlreadyExistException;
 
 import java.util.List;
 import java.util.Optional;

@@ -2,15 +2,16 @@ package fr.cefim.birthdayapp.services;
 
 import fr.cefim.birthdayapp.dtos.BirthdayDTO;
 import fr.cefim.birthdayapp.entities.Birthday;
-import fr.cefim.birthdayapp.exceptions.AccessDeniedException;
-import fr.cefim.birthdayapp.exceptions.BirthdayNotFoundException;
-import fr.cefim.birthdayapp.exceptions.UserNotFoundException;
+import fr.cefim.birthdayapp.exceptions.BusinessResourceException;
 import fr.cefim.birthdayapp.repositories.BirthdayRepository;
 import fr.cefim.birthdayapp.security.MyPrincipalUser;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -19,6 +20,7 @@ public class BirthdayServiceImpl implements BirthdayService {
     private BirthdayRepository mBirthdayRepository;
     private UserServiceImpl mUserService;
 
+    @Autowired
     public BirthdayServiceImpl(
             BirthdayRepository birthdayRepository,
             UserServiceImpl userService
@@ -28,32 +30,36 @@ public class BirthdayServiceImpl implements BirthdayService {
     }
 
     @Override
-    public List<Birthday> getBirthdaysByUserId(Long userId) throws UserNotFoundException, AccessDeniedException {
+    public List<Birthday> getBirthdaysByUserId(Long userId) throws BusinessResourceException {
         MyPrincipalUser userAuthenticated = (MyPrincipalUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!userAuthenticated.getUser().getId().equals(userId)) {
-            throw new AccessDeniedException(String.format("Access denied because your id(%d) is not same: %d", userAuthenticated.getUser().getId(), userId));
+            throw new BusinessResourceException("AccessDenied", String.format("Access denied with this ID: %d", userAuthenticated.getUser().getId()), HttpStatus.UNAUTHORIZED);
         }
         try {
             return mBirthdayRepository.findBirthdaysByUserId(userId);
-        } catch (UserNotFoundException e) {
-            throw new UserNotFoundException(String.format("User not found with this id: %d", userId));
+        } catch (Exception e) {
+            throw new BusinessResourceException("UserNotFound", String.format("No user with this ID: %d", userId), HttpStatus.NOT_FOUND);
         }
     }
 
     @Override
-    public Birthday getBirthdayByUserId(Long userId, Long id) throws AccessDeniedException, UserNotFoundException, BirthdayNotFoundException {
+    public Optional<Birthday> getBirthdayByUserId(Long userId, Long id) throws BusinessResourceException {
         MyPrincipalUser userAuthenticated = (MyPrincipalUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!userAuthenticated.getUser().getId().equals(userId)) {
-            throw new AccessDeniedException(String.format("Access denied because your id(%d) is not same: %d", userAuthenticated.getUser().getId(), userId));
+            throw new BusinessResourceException("AccessDenied", String.format("Access denied with this ID: %d", userAuthenticated.getUser().getId()), HttpStatus.UNAUTHORIZED);
         }
-        return mBirthdayRepository.findBirthdayByUserIdAndId(userId, id);
+        try {
+            return mBirthdayRepository.findBirthdayByUserIdAndId(userId, id);
+        } catch (Exception e) {
+            throw new BusinessResourceException("UserNotFound or BirthdayNotFound", String.format("No user with this ID: %d or birthday with this ID: %d", userId, id), HttpStatus.NOT_FOUND);
+        }
     }
 
     @Override
-    public Birthday createByDTO(Long userId, BirthdayDTO dto) throws AccessDeniedException, UserNotFoundException {
+    public Birthday saveBirthdayByDTO(Long userId, BirthdayDTO dto) throws BusinessResourceException {
         MyPrincipalUser userAuthenticated = (MyPrincipalUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!userAuthenticated.getUser().getId().equals(userId)) {
-            throw new AccessDeniedException(String.format("Access denied because your id(%d) is not same: %d", userAuthenticated.getUser().getId(), userId));
+            throw new BusinessResourceException("AccessDenied", String.format("Access denied with this ID: %d", userAuthenticated.getUser().getId()), HttpStatus.UNAUTHORIZED);
         }
         Birthday birthday = new Birthday();
         birthday.setUser(mUserService.getUserById(userId).get());
@@ -62,45 +68,44 @@ public class BirthdayServiceImpl implements BirthdayService {
         birthday.setLastname(dto.getLastname());
         mBirthdayRepository.save(birthday);
         return birthday;
+
     }
 
     @Override
-    public Birthday updateById(Long userId, Birthday birthday, Long id) throws BirthdayNotFoundException, AccessDeniedException, UserNotFoundException {
+    public Birthday updateBirthdayByDTO(Long userId, Long id, BirthdayDTO birthdayDTO) throws BusinessResourceException {
         MyPrincipalUser userAuthenticated = (MyPrincipalUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!userAuthenticated.getUser().getId().equals(userId)) {
-            throw new AccessDeniedException(String.format("Access denied because your id(%d) is not same: %d", userAuthenticated.getUser().getId(), userId));
+            throw new BusinessResourceException("AccessDenied", String.format("Access denied with this ID: %d", userAuthenticated.getUser().getId()), HttpStatus.UNAUTHORIZED);
         }
-
         Set<Birthday> birthdaySet = mUserService.getUserById(userId).get().getBirthdays();
-        Birthday targetBirthday = mBirthdayRepository.findById(id)
-                .orElseThrow(() -> new BirthdayNotFoundException(String.format("Birthday not found with this id: %d", id)));
-        if (!birthdaySet.contains(targetBirthday)) {
-            throw new AccessDeniedException(String.format("Access denied because this birthday (%s) is not yours", id));
+        Optional<Birthday> birthdayFound = mBirthdayRepository.findById(id);
+        if (birthdayFound.isEmpty()) {
+            throw new BusinessResourceException("BirthdayNotFound", String.format("No birthday with this ID: %d", id), HttpStatus.NOT_FOUND);
         }
-        // FIXME: à simplifier car on sait déjà si le birthday existe où pas
-        return mBirthdayRepository.findById(id)
-                .map(birthdayUpdated -> {
-                    birthdayUpdated.setDate(birthday.getDate());
-                    birthdayUpdated.setFirstname(birthday.getFirstname());
-                    birthdayUpdated.setLastname(birthday.getLastname());
-                    return mBirthdayRepository.save(birthdayUpdated);
-                }).orElseThrow(() -> new BirthdayNotFoundException(String.format("Birthday not found with this id: %d", id)));
+        if (!birthdaySet.contains(birthdayFound.get())) {
+            throw new BusinessResourceException("AccessDenied", String.format("Access denied because this birthday (%d) is not yours", id), HttpStatus.UNAUTHORIZED);
+        }
+        Birthday birthdayUpdated = birthdayFound.get();
+        birthdayUpdated.setDate(birthdayDTO.getDate());
+        birthdayUpdated.setFirstname(birthdayDTO.getFirstname());
+        birthdayUpdated.setLastname(birthdayDTO.getLastname());
+        return mBirthdayRepository.save(birthdayUpdated);
     }
 
     @Override
-    public void deleteById(Long userId, Long id) throws BirthdayNotFoundException, AccessDeniedException, UserNotFoundException {
-//        MyPrincipalUser userAuthenticated = (MyPrincipalUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-//        if (!userAuthenticated.getUser().getId().equals(userId)) {
-//            throw new AccessDeniedException(String.format("Access denied because your id(%d) is not same: %d", userAuthenticated.getUser().getId(), userId));
-//        }
-//
-//        Set<Birthday> birthdaySet = mUserService.getUserById(userId).getBirthdays();
-//        Birthday targetBirthday = mBirthdayRepository.findById(id)
-//                .orElseThrow(() -> new BirthdayNotFoundException(String.format("Birthday not found with this id: %d", id)));
-//        if (!birthdaySet.contains(targetBirthday)) {
-//            throw new AccessDeniedException(String.format("Access denied because this birthday (%s) is not yours", id));
-//        }
-
+    public void deleteById(Long userId, Long id) throws BusinessResourceException {
+        MyPrincipalUser userAuthenticated = (MyPrincipalUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (!userAuthenticated.getUser().getId().equals(userId)) {
+            throw new BusinessResourceException("AccessDenied", String.format("Access denied with this ID: %d", userAuthenticated.getUser().getId()), HttpStatus.UNAUTHORIZED);
+        }
+        Set<Birthday> birthdaySet = mUserService.getUserById(userId).get().getBirthdays();
+        Optional<Birthday> birthdayFound = mBirthdayRepository.findById(id);
+        if (birthdayFound.isEmpty()) {
+            throw new BusinessResourceException("BirthdayNotFound", String.format("No birthday with this ID: %d", id), HttpStatus.NOT_FOUND);
+        }
+        if (!birthdaySet.contains(birthdayFound.get())) {
+            throw new BusinessResourceException("AccessDenied", String.format("Access denied because this birthday (%d) is not yours", id), HttpStatus.UNAUTHORIZED);
+        }
         mBirthdayRepository.deleteById(id);
     }
 }

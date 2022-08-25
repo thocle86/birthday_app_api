@@ -52,7 +52,6 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         if (!userAuthenticated.getUser().getId().equals(id)) {
             throw new BusinessResourceException("AccessDenied", String.format("Access denied with this ID: %d", userAuthenticated.getUser().getId()), HttpStatus.UNAUTHORIZED);
         }
-
         Optional<User> userFound = mUserRepository.findById(id);
         if (userFound.isEmpty()) {
             throw new BusinessResourceException("UserNotFound", String.format("No user with this ID: %d", id), HttpStatus.NOT_FOUND);
