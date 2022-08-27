@@ -6,6 +6,7 @@ import fr.cefim.birthdayapp.services.UserServiceImpl;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Optional;
@@ -19,9 +20,15 @@ public class LoginController {
         mUserService = userService;
     }
 
+//    @PostMapping("/login")
+//    public UserDetails getLogin(@RequestBody LoginDTO loginDTO) {
+//        Optional<User> user = mUserService.getUserByCredentials(loginDTO.getUsername(), loginDTO.getPassword());
+//        return mUserService.loadUserByUsername(user.get().getUsername());
+//    }
+
     @PostMapping("/login")
-    public UserDetails getLogin(@RequestBody LoginDTO loginDTO) {
-        Optional<User> user = mUserService.getUserByCredentials(loginDTO.getUsername(), loginDTO.getPassword());
+    public UserDetails getLogin(@RequestParam String username, @RequestParam String password) {
+        Optional<User> user = mUserService.getUserByCredentials(username, password);
         return mUserService.loadUserByUsername(user.get().getUsername());
     }
 
