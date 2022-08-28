@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -23,18 +24,25 @@ public class User {
     @Column(name = "password", columnDefinition = "VARCHAR(255)", nullable = false)
     private String password;
 
-    @Column(name = "email", columnDefinition = "VARCHAR(50)", nullable = false)
+    @Column(name = "email", columnDefinition = "VARCHAR(100)", nullable = false)
     private String email;
 
-    @ManyToMany(cascade = CascadeType.DETACH, fetch = FetchType.EAGER)
+    @ManyToMany(cascade = CascadeType.DETACH, fetch = FetchType.LAZY)
     @JoinTable(
             name = "users_roles",
             joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false),
             inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id", nullable = false)
     )
-    private Set<Role> roles;
+    private Set<Role> roles = new HashSet<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
-    private Set<Birthday> birthdays;
+    private Set<Birthday> birthdays = new HashSet<>();
 
+    public User() {}
+
+    public User(String username, String password, String email) {
+        this.username = username;
+        this.password = password;
+        this.email = email;
+    }
 }

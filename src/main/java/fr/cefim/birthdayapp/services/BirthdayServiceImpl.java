@@ -4,7 +4,7 @@ import fr.cefim.birthdayapp.dtos.BirthdayDTO;
 import fr.cefim.birthdayapp.entities.Birthday;
 import fr.cefim.birthdayapp.exceptions.BusinessResourceException;
 import fr.cefim.birthdayapp.repositories.BirthdayRepository;
-import fr.cefim.birthdayapp.security.MyPrincipalUser;
+import fr.cefim.birthdayapp.security.UserDetailsImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -31,7 +31,7 @@ public class BirthdayServiceImpl implements BirthdayService {
 
     @Override
     public List<Birthday> getBirthdaysByUserId(Long userId) throws BusinessResourceException {
-        MyPrincipalUser userAuthenticated = (MyPrincipalUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UserDetailsImpl userAuthenticated = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!userAuthenticated.getUser().getId().equals(userId)) {
             throw new BusinessResourceException("AccessDenied", String.format("Access denied with this ID: %d", userAuthenticated.getUser().getId()), HttpStatus.UNAUTHORIZED);
         }
@@ -44,7 +44,7 @@ public class BirthdayServiceImpl implements BirthdayService {
 
     @Override
     public Optional<Birthday> getBirthdayByUserId(Long userId, Long id) throws BusinessResourceException {
-        MyPrincipalUser userAuthenticated = (MyPrincipalUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UserDetailsImpl userAuthenticated = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!userAuthenticated.getUser().getId().equals(userId)) {
             throw new BusinessResourceException("AccessDenied", String.format("Access denied with this ID: %d", userAuthenticated.getUser().getId()), HttpStatus.UNAUTHORIZED);
         }
@@ -57,7 +57,7 @@ public class BirthdayServiceImpl implements BirthdayService {
 
     @Override
     public Birthday saveBirthdayByDTO(Long userId, BirthdayDTO dto) throws BusinessResourceException {
-        MyPrincipalUser userAuthenticated = (MyPrincipalUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UserDetailsImpl userAuthenticated = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!userAuthenticated.getUser().getId().equals(userId)) {
             throw new BusinessResourceException("AccessDenied", String.format("Access denied with this ID: %d", userAuthenticated.getUser().getId()), HttpStatus.UNAUTHORIZED);
         }
@@ -73,7 +73,7 @@ public class BirthdayServiceImpl implements BirthdayService {
 
     @Override
     public Birthday updateBirthdayByDTO(Long userId, Long id, BirthdayDTO birthdayDTO) throws BusinessResourceException {
-        MyPrincipalUser userAuthenticated = (MyPrincipalUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UserDetailsImpl userAuthenticated = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!userAuthenticated.getUser().getId().equals(userId)) {
             throw new BusinessResourceException("AccessDenied", String.format("Access denied with this ID: %d", userAuthenticated.getUser().getId()), HttpStatus.UNAUTHORIZED);
         }
@@ -94,7 +94,7 @@ public class BirthdayServiceImpl implements BirthdayService {
 
     @Override
     public void deleteById(Long userId, Long id) throws BusinessResourceException {
-        MyPrincipalUser userAuthenticated = (MyPrincipalUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UserDetailsImpl userAuthenticated = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!userAuthenticated.getUser().getId().equals(userId)) {
             throw new BusinessResourceException("AccessDenied", String.format("Access denied with this ID: %d", userAuthenticated.getUser().getId()), HttpStatus.UNAUTHORIZED);
         }

@@ -10,11 +10,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class MyPrincipalUser implements UserDetails {
+public class UserDetailsImpl implements UserDetails {
 
     private final User mUser;
 
-    public MyPrincipalUser(User user) {
+    public UserDetailsImpl(User user) {
         mUser = user;
     }
 
@@ -22,8 +22,11 @@ public class MyPrincipalUser implements UserDetails {
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         for (Role role : mUser.getRoles()) {
-            authorities.add(new SimpleGrantedAuthority(role.getName()));
+            authorities.add(new SimpleGrantedAuthority(role.getName().name()));
         }
+//        List<GrantedAuthority> authorities = mUser.getRoles().stream()
+//                .map(role -> new SimpleGrantedAuthority(role.getName().name()))
+//                .collect(Collectors.toList());
         return authorities;
     }
 
