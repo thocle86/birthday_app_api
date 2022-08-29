@@ -32,4 +32,12 @@ public class Birthday {
     @Column(name = "lastname", columnDefinition = "VARCHAR(50)", nullable = false)
     private String lastname;
 
+    public Birthday() {}
+
+    public Birthday(User user, LocalDate date, String firstname, String lastname) {
+        this.user = user;
+        this.date = date;
+        this.firstname = firstname;
+        this.lastname = lastname;
+    }
 }

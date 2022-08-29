@@ -16,4 +16,6 @@ public class BirthdayDTO implements Serializable {
 
     private String lastname;
 
+    public BirthdayDTO() {}
+
 }

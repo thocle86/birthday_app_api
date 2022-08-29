@@ -17,8 +17,8 @@ import java.util.Set;
 @Service
 public class BirthdayServiceImpl implements BirthdayService {
 
-    private BirthdayRepository mBirthdayRepository;
-    private UserServiceImpl mUserService;
+    private final BirthdayRepository mBirthdayRepository;
+    private final UserServiceImpl mUserService;
 
     @Autowired
     public BirthdayServiceImpl(
@@ -33,12 +33,20 @@ public class BirthdayServiceImpl implements BirthdayService {
     public List<Birthday> getBirthdaysByUserId(Long userId) throws BusinessResourceException {
         MyPrincipalUser userAuthenticated = (MyPrincipalUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!userAuthenticated.getUser().getId().equals(userId)) {
-            throw new BusinessResourceException("AccessDenied", String.format("Access denied with this ID: %d", userAuthenticated.getUser().getId()), HttpStatus.UNAUTHORIZED);
+            throw new BusinessResourceException(
+                    "AccessDenied",
+                    String.format("Access denied with this ID: %d", userAuthenticated.getUser().getId()),
+                    HttpStatus.UNAUTHORIZED
+            );
         }
         try {
             return mBirthdayRepository.findBirthdaysByUserId(userId);
         } catch (Exception e) {
-            throw new BusinessResourceException("UserNotFound", String.format("No user with this ID: %d", userId), HttpStatus.NOT_FOUND);
+            throw new BusinessResourceException(
+                    "UserNotFound",
+                    String.format("No user with this ID: %d", userId),
+                    HttpStatus.NOT_FOUND
+            );
         }
     }
 
@@ -46,12 +54,20 @@ public class BirthdayServiceImpl implements BirthdayService {
     public Optional<Birthday> getBirthdayByUserId(Long userId, Long id) throws BusinessResourceException {
         MyPrincipalUser userAuthenticated = (MyPrincipalUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!userAuthenticated.getUser().getId().equals(userId)) {
-            throw new BusinessResourceException("AccessDenied", String.format("Access denied with this ID: %d", userAuthenticated.getUser().getId()), HttpStatus.UNAUTHORIZED);
+            throw new BusinessResourceException(
+                    "AccessDenied",
+                    String.format("Access denied with this ID: %d", userAuthenticated.getUser().getId()),
+                    HttpStatus.UNAUTHORIZED
+            );
         }
         try {
             return mBirthdayRepository.findBirthdayByUserIdAndId(userId, id);
         } catch (Exception e) {
-            throw new BusinessResourceException("UserNotFound or BirthdayNotFound", String.format("No user with this ID: %d or birthday with this ID: %d", userId, id), HttpStatus.NOT_FOUND);
+            throw new BusinessResourceException(
+                    "UserNotFound or BirthdayNotFound",
+                    String.format("No user with this ID: %d or birthday with this ID: %d", userId, id),
+                    HttpStatus.NOT_FOUND
+            );
         }
     }
 
@@ -59,7 +75,11 @@ public class BirthdayServiceImpl implements BirthdayService {
     public Birthday saveBirthdayByDTO(Long userId, BirthdayDTO dto) throws BusinessResourceException {
         MyPrincipalUser userAuthenticated = (MyPrincipalUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!userAuthenticated.getUser().getId().equals(userId)) {
-            throw new BusinessResourceException("AccessDenied", String.format("Access denied with this ID: %d", userAuthenticated.getUser().getId()), HttpStatus.UNAUTHORIZED);
+            throw new BusinessResourceException(
+                    "AccessDenied",
+                    String.format("Access denied with this ID: %d", userAuthenticated.getUser().getId()),
+                    HttpStatus.UNAUTHORIZED
+            );
         }
         Birthday birthday = new Birthday();
         birthday.setUser(mUserService.getUserById(userId).get());
@@ -75,15 +95,27 @@ public class BirthdayServiceImpl implements BirthdayService {
     public Birthday updateBirthdayByDTO(Long userId, Long id, BirthdayDTO birthdayDTO) throws BusinessResourceException {
         MyPrincipalUser userAuthenticated = (MyPrincipalUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!userAuthenticated.getUser().getId().equals(userId)) {
-            throw new BusinessResourceException("AccessDenied", String.format("Access denied with this ID: %d", userAuthenticated.getUser().getId()), HttpStatus.UNAUTHORIZED);
+            throw new BusinessResourceException(
+                    "AccessDenied",
+                    String.format("Access denied with this ID: %d", userAuthenticated.getUser().getId()),
+                    HttpStatus.UNAUTHORIZED
+            );
         }
         Set<Birthday> birthdaySet = mUserService.getUserById(userId).get().getBirthdays();
         Optional<Birthday> birthdayFound = mBirthdayRepository.findById(id);
         if (birthdayFound.isEmpty()) {
-            throw new BusinessResourceException("BirthdayNotFound", String.format("No birthday with this ID: %d", id), HttpStatus.NOT_FOUND);
+            throw new BusinessResourceException(
+                    "BirthdayNotFound",
+                    String.format("No birthday with this ID: %d", id),
+                    HttpStatus.NOT_FOUND
+            );
         }
         if (!birthdaySet.contains(birthdayFound.get())) {
-            throw new BusinessResourceException("AccessDenied", String.format("Access denied because this birthday (%d) is not yours", id), HttpStatus.UNAUTHORIZED);
+            throw new BusinessResourceException(
+                    "AccessDenied",
+                    String.format("Access denied because this birthday (%d) is not yours", id),
+                    HttpStatus.UNAUTHORIZED
+            );
         }
         Birthday birthdayUpdated = birthdayFound.get();
         birthdayUpdated.setDate(birthdayDTO.getDate());
@@ -96,16 +128,29 @@ public class BirthdayServiceImpl implements BirthdayService {
     public void deleteById(Long userId, Long id) throws BusinessResourceException {
         MyPrincipalUser userAuthenticated = (MyPrincipalUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!userAuthenticated.getUser().getId().equals(userId)) {
-            throw new BusinessResourceException("AccessDenied", String.format("Access denied with this ID: %d", userAuthenticated.getUser().getId()), HttpStatus.UNAUTHORIZED);
+            throw new BusinessResourceException(
+                    "AccessDenied",
+                    String.format("Access denied with this ID: %d", userAuthenticated.getUser().getId()),
+                    HttpStatus.UNAUTHORIZED
+            );
         }
         Set<Birthday> birthdaySet = mUserService.getUserById(userId).get().getBirthdays();
         Optional<Birthday> birthdayFound = mBirthdayRepository.findById(id);
         if (birthdayFound.isEmpty()) {
-            throw new BusinessResourceException("BirthdayNotFound", String.format("No birthday with this ID: %d", id), HttpStatus.NOT_FOUND);
+            throw new BusinessResourceException(
+                    "BirthdayNotFound",
+                    String.format("No birthday with this ID: %d", id),
+                    HttpStatus.NOT_FOUND
+            );
         }
         if (!birthdaySet.contains(birthdayFound.get())) {
-            throw new BusinessResourceException("AccessDenied", String.format("Access denied because this birthday (%d) is not yours", id), HttpStatus.UNAUTHORIZED);
+            throw new BusinessResourceException(
+                    "AccessDenied",
+                    String.format("Access denied because this birthday (%d) is not yours", id),
+                    HttpStatus.UNAUTHORIZED
+            );
         }
         mBirthdayRepository.deleteById(id);
     }
+
 }

@@ -7,10 +7,12 @@ import java.io.Serializable;
 
 @Getter
 @Setter
-public class LoginDTO implements Serializable {
+public class RequestLoginDTO implements Serializable {
 
     private String username;
 
     private String password;
+
+    public RequestLoginDTO() {}
 
 }

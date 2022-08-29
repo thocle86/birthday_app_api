@@ -4,9 +4,11 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import fr.cefim.birthdayapp.exceptions.BusinessResourceException;
 import fr.cefim.birthdayapp.services.UserServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -18,7 +20,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-public class CustomAuthorizationFilter extends OncePerRequestFilter {
+public class AuthTokenFilter extends OncePerRequestFilter {
 
     @Autowired
     private UserServiceImpl userService;
@@ -29,36 +31,28 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain
     ) throws ServletException, IOException {
-
-        System.out.println("doFilterInternal");
-
-        if (request.getServletPath().equals("/login")) {
-            filterChain.doFilter(request, response);
-        } else {
-            String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-            if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-                String token = authorizationHeader.substring("Bearer ".length());
-
-                System.out.println("token : " + token);
-
+        try {
+            String headerAuth = request.getHeader(HttpHeaders.AUTHORIZATION);
+            if (headerAuth != null && headerAuth.startsWith("Bearer ")) {
+                String token = headerAuth.substring("Bearer ".length());
                 Algorithm algorithm = Algorithm.HMAC256("secret".getBytes());
-
                 JWTVerifier jwtVerifier = JWT.require(algorithm).build();
                 DecodedJWT decodedJWT = jwtVerifier.verify(token);
                 String username = decodedJWT.getSubject();
-
-                System.out.println("token : " + username);
-
                 MyPrincipalUser myPrincipalUser = (MyPrincipalUser) userService.loadUserByUsername(username);
-
-                UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(myPrincipalUser, null, myPrincipalUser.getAuthorities());
-
-                authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-
-                filterChain.doFilter(request, response);
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(myPrincipalUser, null, myPrincipalUser.getAuthorities());
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authentication);
             }
+        } catch (Exception e) {
+            throw new BusinessResourceException(
+                    "AuthenticationError",
+                    "Cannot set user authentication",
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
         }
+        filterChain.doFilter(request, response);
+
     }
+
 }

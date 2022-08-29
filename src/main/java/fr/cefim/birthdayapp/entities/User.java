@@ -1,9 +1,11 @@
 package fr.cefim.birthdayapp.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -21,9 +23,10 @@ public class User {
     private String username;
 
     @Column(name = "password", columnDefinition = "VARCHAR(255)", nullable = false)
+    @JsonIgnore
     private String password;
 
-    @Column(name = "email", columnDefinition = "VARCHAR(50)", nullable = false)
+    @Column(name = "email", columnDefinition = "VARCHAR(255)", nullable = false)
     private String email;
 
     @ManyToMany(cascade = CascadeType.DETACH, fetch = FetchType.EAGER)
@@ -32,9 +35,17 @@ public class User {
             joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false),
             inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id", nullable = false)
     )
-    private Set<Role> roles;
+    private Set<Role> roles = new HashSet<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
-    private Set<Birthday> birthdays;
+    private Set<Birthday> birthdays = new HashSet<>();
+
+    public User() {}
+
+    public User(String username, String password, String email) {
+        this.username = username;
+        this.password = password;
+        this.email = email;
+    }
 
 }

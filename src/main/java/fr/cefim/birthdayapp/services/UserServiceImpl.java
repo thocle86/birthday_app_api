@@ -4,6 +4,7 @@ import fr.cefim.birthdayapp.dtos.UserDTO;
 import fr.cefim.birthdayapp.entities.Role;
 import fr.cefim.birthdayapp.entities.User;
 import fr.cefim.birthdayapp.exceptions.BusinessResourceException;
+import fr.cefim.birthdayapp.models.RoleEnum;
 import fr.cefim.birthdayapp.repositories.RoleRepository;
 import fr.cefim.birthdayapp.repositories.UserRepository;
 import fr.cefim.birthdayapp.security.MyPrincipalUser;
@@ -50,11 +51,19 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     public Optional<User> getUserById(Long id) throws BusinessResourceException {
         MyPrincipalUser userAuthenticated = (MyPrincipalUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!userAuthenticated.getUser().getId().equals(id)) {
-            throw new BusinessResourceException("AccessDenied", String.format("Access denied with this ID: %d", userAuthenticated.getUser().getId()), HttpStatus.UNAUTHORIZED);
+            throw new BusinessResourceException(
+                    "AccessDenied",
+                    String.format("Access denied with this ID: %d", userAuthenticated.getUser().getId()),
+                    HttpStatus.UNAUTHORIZED
+            );
         }
         Optional<User> userFound = mUserRepository.findById(id);
         if (userFound.isEmpty()) {
-            throw new BusinessResourceException("UserNotFound", String.format("No user with this ID: %d", id), HttpStatus.NOT_FOUND);
+            throw new BusinessResourceException(
+                    "UserNotFound",
+                    String.format("No user with this ID: %d", id),
+                    HttpStatus.NOT_FOUND
+            );
         }
         return userFound;
     }
@@ -63,7 +72,11 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     public Optional<User> getUserByUsername(String username) throws BusinessResourceException {
         Optional<User> userFound = mUserRepository.findByUsername(username);
         if (userFound.isEmpty()) {
-            throw new BusinessResourceException("UserNotFound", String.format("No user with this username: %s", username), HttpStatus.NOT_FOUND);
+            throw new BusinessResourceException(
+                    "UserNotFound",
+                    String.format("No user with this username: %s", username),
+                    HttpStatus.NOT_FOUND
+            );
         }
         return userFound;
     }
@@ -72,10 +85,18 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     public Optional<User> getUserByCredentials(String username, String password) throws BusinessResourceException {
         Optional<User> userFound = mUserRepository.findByUsername(username);
         if (userFound.isEmpty()) {
-            throw new BusinessResourceException("UserNotFound", String.format("No user with this username: %s", username), HttpStatus.NOT_FOUND);
+            throw new BusinessResourceException(
+                    "UserNotFound",
+                    String.format("No user with this username: %s", username),
+                    HttpStatus.NOT_FOUND
+            );
         } else {
             if (!mBCryptPasswordEncoder.matches(password, userFound.get().getPassword())) {
-                throw new BusinessResourceException("UserNotFound", "No user with this password", HttpStatus.NOT_FOUND);
+                throw new BusinessResourceException(
+                        "UserNotFound",
+                        "No user with this password",
+                        HttpStatus.NOT_FOUND
+                );
             }
         }
         return userFound;
@@ -84,14 +105,18 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     @Override
     public User saveUserByDTO(UserDTO userDTO) throws BusinessResourceException {
         if (mUserRepository.findByUsername(userDTO.getUsername()).isPresent()) {
-            throw new BusinessResourceException("UsernameAlreadyExist", String.format("User already exist with this username: %s", userDTO.getUsername()), HttpStatus.CONFLICT);
+            throw new BusinessResourceException(
+                    "UsernameAlreadyExist",
+                    String.format("User already exist with this username: %s", userDTO.getUsername()),
+                    HttpStatus.CONFLICT
+            );
         }
         User user = new User();
         user.setUsername(userDTO.getUsername());
         user.setPassword(mBCryptPasswordEncoder.encode(userDTO.getPassword()));
         user.setEmail(userDTO.getEmail());
         Set<Role> roleSet = new HashSet<>();
-        roleSet.add(mRoleRepository.findByName("ROLE_USER"));
+        roleSet.add(mRoleRepository.findByName(RoleEnum.ROLE_USER));
         user.setRoles(roleSet);
         mUserRepository.save(user);
         return user;
@@ -101,12 +126,20 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     public User updateUserByDTO(Long id, UserDTO userDTO) throws BusinessResourceException {
         MyPrincipalUser userAuthenticated = (MyPrincipalUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!userAuthenticated.getUser().getId().equals(id)) {
-            throw new BusinessResourceException("AccessDenied", String.format("Access denied with ID: %d", userAuthenticated.getUser().getId()), HttpStatus.UNAUTHORIZED);
+            throw new BusinessResourceException(
+                    "AccessDenied",
+                    String.format("Access denied with ID: %d", userAuthenticated.getUser().getId()),
+                    HttpStatus.UNAUTHORIZED
+            );
         }
         Optional<User> userFound = mUserRepository.findById(id);
         User userUpdated = new User();
         if (userFound.isEmpty()) {
-            throw new BusinessResourceException("UserNotFound", String.format("No user with this ID: %d", id), HttpStatus.NOT_FOUND);
+            throw new BusinessResourceException(
+                    "UserNotFound",
+                    String.format("No user with this ID: %d", id),
+                    HttpStatus.NOT_FOUND
+            );
         } else {
             userUpdated = userFound.get();
             userUpdated.setUsername(userDTO.getUsername());
@@ -120,19 +153,31 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     public void deleteUserById(Long id) {
         MyPrincipalUser userAuthenticated = (MyPrincipalUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!userAuthenticated.getUser().getId().equals(id)) {
-            throw new BusinessResourceException("AccessDenied", String.format("Access denied with ID: %d", userAuthenticated.getUser().getId()), HttpStatus.UNAUTHORIZED);
+            throw new BusinessResourceException(
+                    "AccessDenied",
+                    String.format("Access denied with ID: %d", userAuthenticated.getUser().getId()),
+                    HttpStatus.UNAUTHORIZED
+            );
         }
         try {
             mUserRepository.deleteById(id);
         } catch (Exception e) {
-            throw new BusinessResourceException("UserNotFound", String.format("No user with this ID: %d", id), HttpStatus.NOT_FOUND);
+            throw new BusinessResourceException(
+                    "UserNotFound",
+                    String.format("No user with this ID: %d", id),
+                    HttpStatus.NOT_FOUND
+            );
         }
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         if (getUserByUsername(username).isEmpty()) {
-            throw new BusinessResourceException("UserNotFound", String.format("No user with this username: %s", username), HttpStatus.NOT_FOUND);
+            throw new BusinessResourceException(
+                    "UserNotFound",
+                    String.format("No user with this username: %s", username),
+                    HttpStatus.NOT_FOUND
+            );
         }
         return new MyPrincipalUser(getUserByUsername(username).get());
     }
